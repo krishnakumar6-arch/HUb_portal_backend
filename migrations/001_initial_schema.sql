@@ -145,3 +145,14 @@ INSERT INTO users (name, email, hashed_password, role, department) VALUES
      '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
      'admin', 'Business Analytics')
 ON CONFLICT (email) DO NOTHING;
+
+-- ── Add allowed_domain config table (optional — for future multi-tenant support) ──
+CREATE TABLE IF NOT EXISTS auth_config (
+    key   VARCHAR(100) PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+INSERT INTO auth_config (key, value) VALUES
+    ('allowed_domain', 'shadowfax.in'),
+    ('signup_mode',    'admin_only')   -- users cannot self-register; admin must create accounts
+ON CONFLICT (key) DO NOTHING;
