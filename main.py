@@ -13,7 +13,6 @@ scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start nightly ETL scheduler
     from etl.pipeline import run_etl
     scheduler.add_job(
         lambda: run_etl("scheduler"),
@@ -37,16 +36,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allows the Vercel frontend to call this API
+# ── CORS — allow all Vercel deployments + localhost ───────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
+    allow_origins=["*"],          # open for now — tighten after confirming domain
+    allow_credentials=False,      # must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register all routes
 app.include_router(auth.router)
 app.include_router(hubs.router)
 app.include_router(dashboard.router)
@@ -55,12 +53,7 @@ app.include_router(etl.router)
 
 @app.get("/")
 async def root():
-    return {
-        "service": "Hub Portal API",
-        "version": "1.0.0",
-        "status": "running",
-        "docs": "/docs"
-    }
+    return {"service": "Hub Portal API", "version": "1.0.0", "status": "running", "docs": "/docs"}
 
 @app.get("/health")
 async def health():
